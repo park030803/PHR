@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>혈압 위험 예측 분석 대시보드</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0f172a; --surface: #1e293b; --border: #334155;
+    --text: #e2e8f0; --muted: #94a3b8;
+    --accent: #38bdf8; --danger: #ef4444; --warn: #f59e0b; --success: #22c55e;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; line-height: 1.6; }
+  .container { max-width: 1280px; margin: 0 auto; padding: 24px; }
+  h1 { font-size: 1.75rem; font-weight: 700; margin-bottom: 4px; }
+  h2 { font-size: 1.25rem; font-weight: 600; margin-bottom: 16px; color: var(--accent); }
+  .subtitle { color: var(--muted); font-size: 0.9rem; margin-bottom: 24px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px;
+  }
+  .stat-card { text-align: center; }
+  .stat-value { font-size: 2rem; font-weight: 700; }
+  .stat-label { color: var(--muted); font-size: 0.85rem; margin-top: 4px; }
+  .stat-value.accent { color: var(--accent); }
+  .stat-value.danger { color: var(--danger); }
+  .stat-value.warn { color: var(--warn); }
+  .stat-value.success { color: var(--success); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  th { text-align: left; color: var(--muted); font-weight: 600; padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 0.8rem; text-transform: uppercase; }
+  td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  .badge {
+    display: inline-block; padding: 2px 10px; border-radius: 20px;
+    font-size: 0.75rem; font-weight: 600;
+  }
+  .badge-low { background: rgba(34,197,94,0.2); color: var(--success); }
+  .badge-medium { background: rgba(245,158,11,0.2); color: var(--warn); }
+  .badge-high { background: rgba(239,68,68,0.2); color: var(--danger); }
+  .badge-very-high { background: rgba(239,68,68,0.35); color: #fca5a5; }
+
+  .feature-bar {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+  }
+  .feature-name { width: 180px; text-align: right; font-size: 0.85rem; color: var(--muted); }
+  .feature-track { flex: 1; background: var(--border); border-radius: 4px; height: 20px; overflow: hidden; }
+  .feature-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+  .feature-value { width: 60px; font-size: 0.8rem; text-align: right; }
+
+  canvas { max-height: 320px; }
+  .chart-wrap { position: relative; width: 100%; }
+
+  .tabs { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; }
+  .tab {
+    padding: 8px 16px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; cursor: pointer; font-size: 0.85rem; color: var(--muted);
+    transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text); border-color: var(--accent); }
+  .tab.active { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
+  .tab-section { display: none; }
+  .tab-section.active { display: block; }
+
+  .cm-grid { display: grid; grid-template-columns: auto auto auto; gap: 4px; width: 280px; margin: 0 auto; text-align: center; }
+  .cm-cell { padding: 16px; border-radius: 8px; font-size: 1.2rem; font-weight: 700; }
+  .cm-tn { background: rgba(34,197,94,0.2); }
+  .cm-fp { background: rgba(239,68,68,0.2); }
+  .cm-fn { background: rgba(239,68,68,0.15); }
+  .cm-tp { background: rgba(34,197,94,0.3); }
+  .cm-label { font-size: 0.7rem; color: var(--muted); margin-top: 4px; }
+
+  .progress-bar { background: var(--border); border-radius: 6px; height: 12px; overflow: hidden; margin: 4px 0 8px; }
+  .progress-fill { height: 100%; border-radius: 6px; transition: width 0.4s ease; }
+  .progress-fill.low { background: var(--success); }
+  .progress-fill.medium { background: var(--warn); }
+  .progress-fill.high { background: var(--danger); }
+
+  @media (max-width: 768px) {
+    .grid-3 { grid-template-columns: 1fr; }
+    .grid-2 { grid-template-columns: 1fr; }
+    .container { padding: 16px; }
+    h1 { font-size: 1.35rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🫀 혈압 위험 예측 분석 대시보드</h1>
+  <p class="subtitle">SYNTHETIC_PHR_MEDICAL_v4 기준 · Random Forest 모델 · 혈압 위험도 예측</p>
+
+  <!-- Summary Cards -->
+  <div class="grid-3" id="summaryCards"></div>
+
+  <!-- Tab Navigation -->
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('models')">모델 성능</div>
+    <div class="tab" onclick="switchTab('features')">특성 중요도</div>
+    <div class="tab" onclick="switchTab('population')">인구통계</div>
+    <div class="tab" onclick="switchTab('matrix')">혼동행렬</div>
+    <div class="tab" onclick="switchTab('predictions')">개인 예측 샘플</div>
+  </div>
+
+  <!-- Tab: Models -->
+  <div class="tab-section active" id="tab-models">
+    <div class="grid-2">
+      <div class="card">
+        <h2>모델 성능 비교</h2>
+        <table id="modelTable"><thead><tr>
+          <th>모델</th><th>Accuracy</th><th>F1</th><th>Precision</th><th>Recall</th><th>ROC-AUC</th><th>CV AUC</th>
+        </tr></thead><tbody></tbody></table>
+      </div>
+      <div class="card">
+        <h2>ROC-AUC 비교</h2>
+        <div class="chart-wrap"><canvas id="rocChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab: Features -->
+  <div class="tab-section" id="tab-features">
+    <div class="grid-2">
+      <div class="card">
+        <h2>특성 중요도 (Random Forest)</h2>
+        <div id="featureBars"></div>
+      </div>
+      <div class="card">
+        <h2>Permutation Importance</h2>
+        <div class="chart-wrap"><canvas id="permChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab: Population -->
+  <div class="tab-section" id="tab-population">
+    <div class="grid-2">
+      <div class="card">
+        <h2>연령대별 고혈압 비율</h2>
+        <div class="chart-wrap"><canvas id="ageChart"></canvas></div>
+      </div>
+      <div class="card">
+        <h2>성별 고혈압 비율</h2>
+        <div class="chart-wrap"><canvas id="sexChart"></canvas></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h2>연령대별 혈압 비교 (정상 vs 고혈압)</h2>
+      <table id="ageTable"><thead><tr>
+        <th>연령대</th><th>전체 인원</th><th>고혈압 인원</th><th>고혈압 비율</th><th>정상 평균 SBP</th><th>고혈압 평균 SBP</th>
+      </tr></thead><tbody></tbody></table>
+    </div>
+  </div>
+
+  <!-- Tab: Matrix -->
+  <div class="tab-section" id="tab-matrix">
+    <div class="card" style="max-width:600px; margin:0 auto;">
+      <h2>혼동행렬 (Confusion Matrix)</h2>
+      <div class="cm-grid" id="confusionMatrix"></div>
+    </div>
+  </div>
+
+  <!-- Tab: Predictions -->
+  <div class="tab-section" id="tab-predictions">
+    <div class="card">
+      <h2>개인별 예측 샘플 (20명)</h2>
+      <div style="overflow-x:auto">
+        <table id="predTable"><thead><tr>
+          <th>나이</th><th>성별</th><th>SBP</th><th>DBP</th><th>BMI</th><th>흡연</th><th>운동</th><th>실제 상태</th><th>고혈압 확률</th><th>위험도</th>
+        </tr></thead><tbody></tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const DATA = {"models": {"LogisticRegression": {"accuracy": 0.9115, "f1": 0.6616, "precision": 0.5117, "recall": 0.9359, "roc_auc": 0.9751, "cv_roc_auc_mean": 0.978, "cv_roc_auc_std": 0.0016}, "RandomForest": {"accuracy": 1.0, "f1": 1.0, "precision": 1.0, "recall": 1.0, "roc_auc": 1.0, "cv_roc_auc_mean": 1.0, "cv_roc_auc_std": 0.0}, "GradientBoosting": {"accuracy": 1.0, "f1": 1.0, "precision": 1.0, "recall": 1.0, "roc_auc": 1.0, "cv_roc_auc_mean": 1.0, "cv_roc_auc_std": 0.0}}, "best_model": "RandomForest", "best_model_metrics": {"accuracy": 1.0, "f1": 1.0, "precision": 1.0, "recall": 1.0, "roc_auc": 1.0, "cv_roc_auc_mean": 1.0, "cv_roc_auc_std": 0.0}, "feature_importance": [{"feature": "SBP", "rf_importance": 0.6085, "perm_importance": 0.1873, "perm_std": 0.0041}, {"feature": "DBP", "rf_importance": 0.1238, "perm_importance": 0.0274, "perm_std": 0.0012}, {"feature": "AGE", "rf_importance": 0.1176, "perm_importance": 0.0, "perm_std": 0.0}, {"feature": "SEX_ENC", "rf_importance": 0.0019, "perm_importance": 0.0, "perm_std": 0.0}, {"feature": "SMOKING_ENC", "rf_importance": 0.0013, "perm_importance": 0.0, "perm_std": 0.0}, {"feature": "DRINKING_ENC", "rf_importance": 0.0015, "perm_importance": 0.0, "perm_std": 0.0}, {"feature": "EXERCISE_ENC", "rf_importance": 0.0016, "perm_importance": 0.0, "perm_std": 0.0}, {"feature": "SLEEP_HOURS", "rf_importance": 0.0087, "perm_importance": 0.0, "perm_std": 0.0}, {"feature": "STRESS_LEVEL_ENC", "rf_importance": 0.0015, "perm_importance": 0.0, "perm_std": 0.0}, {"feature": "SUBJECTIVE_HEALTH_ENC", "rf_importance": 0.0331, "perm_importance": 0.0, "perm_std": 0.0}, {"feature": "LIFESTYLE_RISK_SCORE", "rf_importance": 0.003, "perm_importance": 0.0, "perm_std": 0.0}, {"feature": "BMI", "rf_importance": 0.0233, "perm_importance": 0.0, "perm_std": 0.0}, {"feature": "WAIST", "rf_importance": 0.0134, "perm_importance": 0.0, "perm_std": 0.0}, {"feature": "GLUCOSE", "rf_importance": 0.0077, "perm_importance": 0.0, "perm_std": 0.0}, {"feature": "HDL", "rf_importance": 0.0065, "perm_importance": 0.0, "perm_std": 0.0}, {"feature": "LDL", "rf_importance": 0.0058, "perm_importance": 0.0, "perm_std": 0.0}, {"feature": "TRIGLYCERIDE", "rf_importance": 0.0069, "perm_importance": 0.0, "perm_std": 0.0}, {"feature": "MENOPAUSE_ENC", "rf_importance": 0.0339, "perm_importance": 0.0, "perm_std": 0.0}], "feature_names": ["AGE", "SEX_ENC", "SMOKING_ENC", "DRINKING_ENC", "EXERCISE_ENC", "SLEEP_HOURS", "STRESS_LEVEL_ENC", "SUBJECTIVE_HEALTH_ENC", "LIFESTYLE_RISK_SCORE", "BMI", "WAIST", "SBP", "DBP", "GLUCOSE", "HDL", "LDL", "TRIGLYCERIDE", "MENOPAUSE_ENC"], "confusion_matrix": [[2296, 0], [0, 234]], "sample_predictions": [{"age": 51, "sex": "여성", "sbp": 123.0, "dbp": 63.0, "bmi": 21.5, "smoking": "비흡연", "exercise": "주3~4회", "actual_htn": "고혈압 전단계", "predicted_prob": 0.0001, "risk_level": "매우 낮음"}, {"age": 72, "sex": "남성", "sbp": 148.0, "dbp": 79.0, "bmi": 26.3, "smoking": "과거흡연", "exercise": "주3~4회", "actual_htn": "고혈압", "predicted_prob": 0.9869, "risk_level": "매우 높음"}, {"age": 66, "sex": "여성", "sbp": 126.0, "dbp": 56.0, "bmi": 24.7, "smoking": "비흡연", "exercise": "주1~2회", "actual_htn": "고혈압 전단계", "predicted_prob": 0.0466, "risk_level": "매우 낮음"}, {"age": 75, "sex": "여성", "sbp": 130.0, "dbp": 69.0, "bmi": 24.4, "smoking": "비흡연", "exercise": "없음", "actual_htn": "고혈압 전단계", "predicted_prob": 0.0846, "risk_level": "매우 낮음"}, {"age": 70, "sex": "남성", "sbp": 113.0, "dbp": 83.0, "bmi": 23.7, "smoking": "비흡연", "exercise": "주1~2회", "actual_htn": "고혈압 전단계", "predicted_prob": 0.0799, "risk_level": "매우 낮음"}, {"age": 36, "sex": "남성", "sbp": 90.0, "dbp": 59.0, "bmi": 26.9, "smoking": "비흡연", "exercise": "주1~2회", "actual_htn": "정상", "predicted_prob": 0.0068, "risk_level": "매우 낮음"}, {"age": 47, "sex": "여성", "sbp": 122.0, "dbp": 74.0, "bmi": 24.2, "smoking": "비흡연", "exercise": "주1~2회", "actual_htn": "고혈압 전단계", "predicted_prob": 0.0007, "risk_level": "매우 낮음"}, {"age": 25, "sex": "여성", "sbp": 90.0, "dbp": 63.0, "bmi": 18.9, "smoking": "현재흡연", "exercise": "주3~4회", "actual_htn": "정상", "predicted_prob": 0.0014, "risk_level": "매우 낮음"}, {"age": 62, "sex": "여성", "sbp": 104.0, "dbp": 56.0, "bmi": 23.5, "smoking": "비흡연", "exercise": "주3~4회", "actual_htn": "정상", "predicted_prob": 0.0464, "risk_level": "매우 낮음"}, {"age": 53, "sex": "여성", "sbp": 130.0, "dbp": 56.0, "bmi": 24.5, "smoking": "비흡연", "exercise": "주5회 이상", "actual_htn": "고혈압 전단계", "predicted_prob": 0.0008, "risk_level": "매우 낮음"}, {"age": 62, "sex": "여성", "sbp": 133.0, "dbp": 75.0, "bmi": 24.5, "smoking": "비흡연", "exercise": "없음", "actual_htn": "고혈압 전단계", "predicted_prob": 0.0336, "risk_level": "매우 낮음"}, {"age": 50, "sex": "여성", "sbp": 122.0, "dbp": 66.0, "bmi": 27.6, "smoking": "현재흡연", "exercise": "주1~2회", "actual_htn": "고혈압 전단계", "predicted_prob": 0.0221, "risk_level": "매우 낮음"}, {"age": 60, "sex": "남성", "sbp": 138.0, "dbp": 73.0, "bmi": 29.1, "smoking": "현재흡연", "exercise": "없음", "actual_htn": "고혈압 전단계", "predicted_prob": 0.0641, "risk_level": "매우 낮음"}, {"age": 45, "sex": "여성", "sbp": 134.0, "dbp": 70.0, "bmi": 27.9, "smoking": "비흡연", "exercise": "주1~2회", "actual_htn": "고혈압 전단계", "predicted_prob": 0.018, "risk_level": "매우 낮음"}, {"age": 27, "sex": "남성", "sbp": 95.0, "dbp": 50.0, "bmi": 19.7, "smoking": "비흡연", "exercise": "주1~2회", "actual_htn": "정상", "predicted_prob": 0.0011, "risk_level": "매우 낮음"}, {"age": 23, "sex": "남성", "sbp": 103.0, "dbp": 56.0, "bmi": 27.7, "smoking": "비흡연", "exercise": "주5회 이상", "actual_htn": "정상", "predicted_prob": 0.0258, "risk_level": "매우 낮음"}, {"age": 43, "sex": "남성", "sbp": 99.0, "dbp": 59.0, "bmi": 20.4, "smoking": "현재흡연", "exercise": "주3~4회", "actual_htn": "정상", "predicted_prob": 0.0015, "risk_level": "매우 낮음"}, {"age": 47, "sex": "여성", "sbp": 110.0, "dbp": 60.0, "bmi": 24.6, "smoking": "비흡연", "exercise": "주1~2회", "actual_htn": "정상", "predicted_prob": 0.0004, "risk_level": "매우 낮음"}, {"age": 68, "sex": "남성", "sbp": 126.0, "dbp": 70.0, "bmi": 27.7, "smoking": "비흡연", "exercise": "주3~4회", "actual_htn": "고혈압 전단계", "predicted_prob": 0.0585, "risk_level": "매우 낮음"}, {"age": 43, "sex": "남성", "sbp": 95.0, "dbp": 77.0, "bmi": 22.5, "smoking": "비흡연", "exercise": "주3~4회", "actual_htn": "정상", "predicted_prob": 0.0171, "risk_level": "매우 낮음"}], "population_stats": {"total_records": 12650, "hypertension_count": 1171, "hypertension_pct": 9.3, "age_stats": {"mean": 52.0, "min": 20, "max": 89}, "sbp_stats": {"mean": 117.1, "min": 90, "max": 177, "p25": 106.0, "p50": 117.0, "p75": 128.0}, "dbp_stats": {"mean": 69.5, "min": 50, "max": 100}, "bmi_stats": {"mean": 24.1, "min": 17.0, "max": 38.1}}, "age_htn_stats": [{"age_group": "20대", "total": 842, "htn_count": 2, "htn_pct": 0.2, "avg_sbp_normal": 99.4, "avg_sbp_htn": 115.5}, {"age_group": "30대", "total": 1709, "htn_count": 7, "htn_pct": 0.4, "avg_sbp_normal": 104.4, "avg_sbp_htn": 132.6}, {"age_group": "40대", "total": 2969, "htn_count": 74, "htn_pct": 2.5, "avg_sbp_normal": 112.4, "avg_sbp_htn": 139.0}, {"age_group": "50대", "total": 3274, "htn_count": 202, "htn_pct": 6.2, "avg_sbp_normal": 117.5, "avg_sbp_htn": 142.3}, {"age_group": "60대", "total": 2309, "htn_count": 375, "htn_pct": 16.2, "avg_sbp_normal": 121.5, "avg_sbp_htn": 143.7}, {"age_group": "70대", "total": 1136, "htn_count": 314, "htn_pct": 27.6, "avg_sbp_normal": 124.4, "avg_sbp_htn": 145.1}, {"age_group": "80대이상", "total": 411, "htn_count": 197, "htn_pct": 47.9, "avg_sbp_normal": 127.3, "avg_sbp_htn": 147.6}], "sex_htn_stats": [{"sex": "남성", "total": 6205, "htn_count": 735, "htn_pct": 11.8}, {"sex": "여성", "total": 6445, "htn_count": 436, "htn_pct": 6.8}], "encoders": {"SEX": {"남성": 0, "여성": 1}, "SMOKING": {"과거흡연": 0, "비흡연": 1, "현재흡연": 2}, "DRINKING": {"비음주": 0, "월1~4회": 1, "주1~2회": 2, "주3회 이상": 3}, "EXERCISE": {"없음": 0, "주1~2회": 1, "주3~4회": 2, "주5회 이상": 3}, "STRESS_LEVEL": {"낮음": 0, "높음": 1, "보통": 2}, "SUBJECTIVE_HEALTH": {"나쁨": 0, "보통": 1, "좋음": 2}, "MENOPAUSE": {"NO": 0, "YES": 1, "해당없음": 2}}};
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+  document.querySelector(`.tab[onclick*="${name}"]`).classList.add('active');
+  document.getElementById(`tab-${name}`).classList.add('active');
+}
+
+function fmt(n) { return Number(n).toLocaleString('ko-KR'); }
+function pct(n) { return (Number(n)*100).toFixed(1) + '%'; }
+
+function barColor(val, max) {
+  const ratio = val / max;
+  if (ratio > 0.6) return 'var(--danger)';
+  if (ratio > 0.35) return 'var(--warn)';
+  return 'var(--accent)';
+}
+
+function riskBadge(level) {
+  const cls = level === '매우 낮음' ? 'badge-low' :
+              level === '낮음' ? 'badge-low' :
+              level === '중간' ? 'badge-medium' :
+              level === '높음' ? 'badge-high' : 'badge-very-high';
+  return `<span class="badge ${cls}">${level}</span>`;
+}
+
+function modelBadge(name) {
+  const cls = name === 'RandomForest' ? 'badge-success' :
+              name === 'LogisticRegression' ? 'badge-warn' : 'badge-high';
+  return `<span class="badge" style="background:${name==='RandomForest'?'rgba(56,189,248,0.2)':name==='LogisticRegression'?'rgba(245,158,11,0.2)':'rgba(34,197,94,0.2)'};color:${name==='RandomForest'?'var(--accent)':name==='LogisticRegression'?'var(--warn)':'var(--success)'}">${name}</span>`;
+}
+
+// ── MAIN LOAD ──
+renderAll();
+
+function renderAll() {
+  renderSummary();
+  renderModelTable();
+  renderRocChart();
+  renderFeatureBars();
+  renderPermChart();
+  renderAgeChart();
+  renderSexChart();
+  renderAgeTable();
+  renderConfusionMatrix();
+  renderPredictions();
+}
+
+function renderSummary() {
+  const ps = DATA.population_stats;
+  document.getElementById('summaryCards').innerHTML = `
+    <div class="card stat-card">
+      <div class="stat-value accent">${fmt(ps.total_records)}</div>
+      <div class="stat-label">전체 데이터</div>
+    </div>
+    <div class="card stat-card">
+      <div class="stat-value danger">${ps.hypertension_pct}%</div>
+      <div class="stat-label">고혈압 비율 (${fmt(ps.hypertension_count)}명)</div>
+    </div>
+    <div class="card stat-card">
+      <div class="stat-value warn">${DATA.models.RandomForest.roc_auc.toFixed(3)}</div>
+      <div class="stat-label">ROC-AUC (Random Forest)</div>
+    </div>
+  `;
+}
+
+function renderModelTable() {
+  const tbody = document.querySelector('#modelTable tbody');
+  const names = ['LogisticRegression','RandomForest','GradientBoosting'];
+  tbody.innerHTML = names.map(n => {
+    const m = DATA.models[n];
+    const isBest = n === DATA.best_model;
+    const bg = isBest ? 'style="background:rgba(56,189,248,0.06)"' : '';
+    return `<tr ${bg}>
+      <td>${modelBadge(n)} ${isBest?'⭐':''}</td>
+      <td>${pct(m.accuracy)}</td>
+      <td>${pct(m.f1)}</td>
+      <td>${pct(m.precision)}</td>
+      <td>${pct(m.recall)}</td>
+      <td>${pct(m.roc_auc)}</td>
+      <td>${pct(m.cv_roc_auc_mean)} (±${pct(m.cv_roc_auc_std)})</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderRocChart() {
+  new Chart(document.getElementById('rocChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Logistic Regression','Random Forest','Gradient Boosting'],
+      datasets: [
+        {label:'Accuracy',data:[DATA.models.LogisticRegression.accuracy,DATA.models.RandomForest.accuracy,DATA.models.GradientBoosting.accuracy],backgroundColor:'rgba(56,189,248,0.5)',borderColor:'#38bdf8',borderWidth:1},
+        {label:'F1 Score',data:[DATA.models.LogisticRegression.f1,DATA.models.RandomForest.f1,DATA.models.GradientBoosting.f1],backgroundColor:'rgba(34,197,94,0.5)',borderColor:'#22c55e',borderWidth:1},
+        {label:'ROC-AUC',data:[DATA.models.LogisticRegression.roc_auc,DATA.models.RandomForest.roc_auc,DATA.models.GradientBoosting.roc_auc],backgroundColor:'rgba(245,158,11,0.5)',borderColor:'#f59e0b',borderWidth:1}
+      ]
+    },
+    options: {
+      responsive:true,
+      plugins:{legend:{labels:{color:'#94a3b8',font:{size:12}}}},
+      scales:{
+        y:{min:0.7,max:1.05,ticks:{color:'#64748b',callback:v=>(v*100).toFixed(0)+'%'},grid:{color:'#1e293b'}},
+        x:{ticks:{color:'#94a3b8',font:{size:11}},grid:{display:false}}
+      }
+    }
+  });
+}
+
+function renderFeatureBars() {
+  const fi = DATA.feature_importance;
+  const maxImp = fi[0].rf_importance;
+  document.getElementById('featureBars').innerHTML = fi.map(f => `
+    <div class="feature-bar">
+      <div class="feature-name">${f.feature}</div>
+      <div class="feature-track">
+        <div class="feature-fill" style="width:${(f.rf_importance/maxImp*100).toFixed(0)}%;background:${barColor(f.rf_importance,maxImp)}"></div>
+      </div>
+      <div class="feature-value">${(f.rf_importance*100).toFixed(1)}%</div>
+    </div>
+  `).join('');
+}
+
+function renderPermChart() {
+  const fi = DATA.feature_importance.filter(f => f.perm_importance > 0.001);
+  new Chart(document.getElementById('permChart'), {
+    type: 'bar',
+    data: {
+      labels: fi.map(f => f.feature),
+      datasets: [{
+        label:'Permutation Importance',data:fi.map(f=>f.perm_importance),
+        backgroundColor:fi.map(f=>barColor(f.perm_importance,fi[0].perm_importance)),
+        borderWidth:0,borderRadius:4
+      }]
+    },
+    options:{
+      indexAxis:'y',responsive:true,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{color:'#64748b'},grid:{color:'#1e293b'}},
+        y:{ticks:{color:'#94a3b8',font:{size:11}},grid:{display:false}}
+      }
+    }
+  });
+}
+
+function renderAgeChart() {
+  const d = DATA.age_htn_stats;
+  new Chart(document.getElementById('ageChart'), {
+    type: 'bar',
+    data: {
+      labels: d.map(a=>a.age_group),
+      datasets: [
+        {label:'고혈압(%)',data:d.map(a=>a.htn_pct),backgroundColor:'rgba(239,68,68,0.5)',borderColor:'#ef4444',borderWidth:1,borderRadius:4},
+        {label:'총 인원',data:d.map(a=>a.total),backgroundColor:'rgba(56,189,248,0.15)',borderColor:'#38bdf8',borderWidth:1,borderRadius:4,yAxisID:'y1'}
+      ]
+    },
+    options:{
+      responsive:true,
+      plugins:{legend:{labels:{color:'#94a3b8',font:{size:11}}}},
+      scales:{
+        y:{position:'left',title:{display:true,text:'고혈압 비율 (%)',color:'#94a3b8'},ticks:{color:'#64748b',callback:v=>v+'%'},grid:{color:'#1e293b'}},
+        y1:{position:'right',title:{display:true,text:'인원',color:'#94a3b8'},ticks:{color:'#64748b'},grid:{display:false}},
+        x:{ticks:{color:'#94a3b8'},grid:{display:false}}
+      }
+    }
+  });
+}
+
+function renderSexChart() {
+  const d = DATA.sex_htn_stats;
+  new Chart(document.getElementById('sexChart'), {
+    type: 'doughnut',
+    data: {
+      labels: d.map(s=>s.sex+' (정상)'),
+      datasets: [
+        {label:'정상',data:d.map(s=>s.total-s.htn_count),backgroundColor:['rgba(56,189,248,0.6)','rgba(236,72,153,0.6)'],borderColor:'#0f172a',borderWidth:2},
+        {label:'고혈압',data:d.map(s=>s.htn_count),backgroundColor:['rgba(56,189,248,0.3)','rgba(236,72,153,0.3)'],borderColor:'#0f172a',borderWidth:2}
+      ]
+    },
+    options:{
+      responsive:true,
+      plugins:{
+        legend:{position:'bottom',labels:{color:'#94a3b8',font:{size:11},padding:16}}
+      }
+    }
+  });
+}
+
+function renderAgeTable() {
+  const tbody = document.querySelector('#ageTable tbody');
+  tbody.innerHTML = DATA.age_htn_stats.map(a => `
+    <tr>
+      <td style="font-weight:600">${a.age_group}</td>
+      <td>${fmt(a.total)}</td>
+      <td>${fmt(a.htn_count)}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="progress-bar" style="flex:1"><div class="progress-fill ${a.htn_pct>25?'high':a.htn_pct>10?'medium':'low'}" style="width:${a.htn_pct}%"></div></div>
+          <span style="font-weight:600;min-width:45px">${a.htn_pct}%</span>
+        </div>
+      </td>
+      <td>${a.avg_sbp_normal} mmHg</td>
+      <td>${a.avg_sbp_htn} mmHg</td>
+    </tr>
+  `).join('');
+}
+
+function renderConfusionMatrix() {
+  const cm = DATA.confusion_matrix; // [[TN, FP], [FN, TP]]
+  document.getElementById('confusionMatrix').innerHTML = `
+    <div></div>
+    <div style="color:var(--muted);font-size:0.8rem;padding:8px">예측: 정상</div>
+    <div style="color:var(--muted);font-size:0.8rem;padding:8px">예측: 고혈압</div>
+
+    <div style="color:var(--muted);font-size:0.8rem;padding:8px">실제: 정상</div>
+    <div class="cm-cell cm-tn">${fmt(cm[0][0])}<div class="cm-label">TN (정상→정상)</div></div>
+    <div class="cm-cell cm-fp">${fmt(cm[0][1])}<div class="cm-label">FP (정상→고혈압)</div></div>
+
+    <div style="color:var(--muted);font-size:0.8rem;padding:8px">실제: 고혈압</div>
+    <div class="cm-cell cm-fn">${fmt(cm[1][0])}<div class="cm-label">FN (고혈압→정상)</div></div>
+    <div class="cm-cell cm-tp">${fmt(cm[1][1])}<div class="cm-label">TP (고혈압→고혈압)</div></div>
+  `;
+}
+
+function renderPredictions() {
+  const tbody = document.querySelector('#predTable tbody');
+  tbody.innerHTML = DATA.sample_predictions.map(p => `
+    <tr>
+      <td>${p.age}</td>
+      <td>${p.sex}</td>
+      <td>${p.sbp}</td>
+      <td>${p.dbp}</td>
+      <td>${p.bmi}</td>
+      <td>${p.smoking}</td>
+      <td>${p.exercise}</td>
+      <td>${p.actual_htn}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div class="progress-bar" style="width:80px">
+            <div class="progress-fill ${p.predicted_prob>0.5?'high':p.predicted_prob>0.25?'medium':'low'}" style="width:${(p.predicted_prob*100).toFixed(0)}%"></div>
+          </div>
+          <span style="font-weight:600">${(p.predicted_prob*100).toFixed(1)}%</span>
+        </div>
+      </td>
+      <td>${riskBadge(p.risk_level)}</td>
+    </tr>
+  `).join('');
+}
+</script>
+</body>
+</html>

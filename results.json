@@ -1,0 +1,561 @@
+{
+  "models": {
+    "LogisticRegression": {
+      "accuracy": 0.9115,
+      "f1": 0.6616,
+      "precision": 0.5117,
+      "recall": 0.9359,
+      "roc_auc": 0.9751,
+      "cv_roc_auc_mean": 0.978,
+      "cv_roc_auc_std": 0.0016
+    },
+    "RandomForest": {
+      "accuracy": 1.0,
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "roc_auc": 1.0,
+      "cv_roc_auc_mean": 1.0,
+      "cv_roc_auc_std": 0.0
+    },
+    "GradientBoosting": {
+      "accuracy": 1.0,
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "roc_auc": 1.0,
+      "cv_roc_auc_mean": 1.0,
+      "cv_roc_auc_std": 0.0
+    }
+  },
+  "best_model": "RandomForest",
+  "best_model_metrics": {
+    "accuracy": 1.0,
+    "f1": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "roc_auc": 1.0,
+    "cv_roc_auc_mean": 1.0,
+    "cv_roc_auc_std": 0.0
+  },
+  "feature_importance": [
+    {
+      "feature": "SBP",
+      "rf_importance": 0.6085,
+      "perm_importance": 0.1873,
+      "perm_std": 0.0041
+    },
+    {
+      "feature": "DBP",
+      "rf_importance": 0.1238,
+      "perm_importance": 0.0274,
+      "perm_std": 0.0012
+    },
+    {
+      "feature": "AGE",
+      "rf_importance": 0.1176,
+      "perm_importance": 0.0,
+      "perm_std": 0.0
+    },
+    {
+      "feature": "SEX_ENC",
+      "rf_importance": 0.0019,
+      "perm_importance": 0.0,
+      "perm_std": 0.0
+    },
+    {
+      "feature": "SMOKING_ENC",
+      "rf_importance": 0.0013,
+      "perm_importance": 0.0,
+      "perm_std": 0.0
+    },
+    {
+      "feature": "DRINKING_ENC",
+      "rf_importance": 0.0015,
+      "perm_importance": 0.0,
+      "perm_std": 0.0
+    },
+    {
+      "feature": "EXERCISE_ENC",
+      "rf_importance": 0.0016,
+      "perm_importance": 0.0,
+      "perm_std": 0.0
+    },
+    {
+      "feature": "SLEEP_HOURS",
+      "rf_importance": 0.0087,
+      "perm_importance": 0.0,
+      "perm_std": 0.0
+    },
+    {
+      "feature": "STRESS_LEVEL_ENC",
+      "rf_importance": 0.0015,
+      "perm_importance": 0.0,
+      "perm_std": 0.0
+    },
+    {
+      "feature": "SUBJECTIVE_HEALTH_ENC",
+      "rf_importance": 0.0331,
+      "perm_importance": 0.0,
+      "perm_std": 0.0
+    },
+    {
+      "feature": "LIFESTYLE_RISK_SCORE",
+      "rf_importance": 0.003,
+      "perm_importance": 0.0,
+      "perm_std": 0.0
+    },
+    {
+      "feature": "BMI",
+      "rf_importance": 0.0233,
+      "perm_importance": 0.0,
+      "perm_std": 0.0
+    },
+    {
+      "feature": "WAIST",
+      "rf_importance": 0.0134,
+      "perm_importance": 0.0,
+      "perm_std": 0.0
+    },
+    {
+      "feature": "GLUCOSE",
+      "rf_importance": 0.0077,
+      "perm_importance": 0.0,
+      "perm_std": 0.0
+    },
+    {
+      "feature": "HDL",
+      "rf_importance": 0.0065,
+      "perm_importance": 0.0,
+      "perm_std": 0.0
+    },
+    {
+      "feature": "LDL",
+      "rf_importance": 0.0058,
+      "perm_importance": 0.0,
+      "perm_std": 0.0
+    },
+    {
+      "feature": "TRIGLYCERIDE",
+      "rf_importance": 0.0069,
+      "perm_importance": 0.0,
+      "perm_std": 0.0
+    },
+    {
+      "feature": "MENOPAUSE_ENC",
+      "rf_importance": 0.0339,
+      "perm_importance": 0.0,
+      "perm_std": 0.0
+    }
+  ],
+  "feature_names": [
+    "AGE",
+    "SEX_ENC",
+    "SMOKING_ENC",
+    "DRINKING_ENC",
+    "EXERCISE_ENC",
+    "SLEEP_HOURS",
+    "STRESS_LEVEL_ENC",
+    "SUBJECTIVE_HEALTH_ENC",
+    "LIFESTYLE_RISK_SCORE",
+    "BMI",
+    "WAIST",
+    "SBP",
+    "DBP",
+    "GLUCOSE",
+    "HDL",
+    "LDL",
+    "TRIGLYCERIDE",
+    "MENOPAUSE_ENC"
+  ],
+  "confusion_matrix": [
+    [
+      2296,
+      0
+    ],
+    [
+      0,
+      234
+    ]
+  ],
+  "sample_predictions": [
+    {
+      "age": 51,
+      "sex": "여성",
+      "sbp": 123.0,
+      "dbp": 63.0,
+      "bmi": 21.5,
+      "smoking": "비흡연",
+      "exercise": "주3~4회",
+      "actual_htn": "고혈압 전단계",
+      "predicted_prob": 0.0001,
+      "risk_level": "매우 낮음"
+    },
+    {
+      "age": 72,
+      "sex": "남성",
+      "sbp": 148.0,
+      "dbp": 79.0,
+      "bmi": 26.3,
+      "smoking": "과거흡연",
+      "exercise": "주3~4회",
+      "actual_htn": "고혈압",
+      "predicted_prob": 0.9869,
+      "risk_level": "매우 높음"
+    },
+    {
+      "age": 66,
+      "sex": "여성",
+      "sbp": 126.0,
+      "dbp": 56.0,
+      "bmi": 24.7,
+      "smoking": "비흡연",
+      "exercise": "주1~2회",
+      "actual_htn": "고혈압 전단계",
+      "predicted_prob": 0.0466,
+      "risk_level": "매우 낮음"
+    },
+    {
+      "age": 75,
+      "sex": "여성",
+      "sbp": 130.0,
+      "dbp": 69.0,
+      "bmi": 24.4,
+      "smoking": "비흡연",
+      "exercise": "없음",
+      "actual_htn": "고혈압 전단계",
+      "predicted_prob": 0.0846,
+      "risk_level": "매우 낮음"
+    },
+    {
+      "age": 70,
+      "sex": "남성",
+      "sbp": 113.0,
+      "dbp": 83.0,
+      "bmi": 23.7,
+      "smoking": "비흡연",
+      "exercise": "주1~2회",
+      "actual_htn": "고혈압 전단계",
+      "predicted_prob": 0.0799,
+      "risk_level": "매우 낮음"
+    },
+    {
+      "age": 36,
+      "sex": "남성",
+      "sbp": 90.0,
+      "dbp": 59.0,
+      "bmi": 26.9,
+      "smoking": "비흡연",
+      "exercise": "주1~2회",
+      "actual_htn": "정상",
+      "predicted_prob": 0.0068,
+      "risk_level": "매우 낮음"
+    },
+    {
+      "age": 47,
+      "sex": "여성",
+      "sbp": 122.0,
+      "dbp": 74.0,
+      "bmi": 24.2,
+      "smoking": "비흡연",
+      "exercise": "주1~2회",
+      "actual_htn": "고혈압 전단계",
+      "predicted_prob": 0.0007,
+      "risk_level": "매우 낮음"
+    },
+    {
+      "age": 25,
+      "sex": "여성",
+      "sbp": 90.0,
+      "dbp": 63.0,
+      "bmi": 18.9,
+      "smoking": "현재흡연",
+      "exercise": "주3~4회",
+      "actual_htn": "정상",
+      "predicted_prob": 0.0014,
+      "risk_level": "매우 낮음"
+    },
+    {
+      "age": 62,
+      "sex": "여성",
+      "sbp": 104.0,
+      "dbp": 56.0,
+      "bmi": 23.5,
+      "smoking": "비흡연",
+      "exercise": "주3~4회",
+      "actual_htn": "정상",
+      "predicted_prob": 0.0464,
+      "risk_level": "매우 낮음"
+    },
+    {
+      "age": 53,
+      "sex": "여성",
+      "sbp": 130.0,
+      "dbp": 56.0,
+      "bmi": 24.5,
+      "smoking": "비흡연",
+      "exercise": "주5회 이상",
+      "actual_htn": "고혈압 전단계",
+      "predicted_prob": 0.0008,
+      "risk_level": "매우 낮음"
+    },
+    {
+      "age": 62,
+      "sex": "여성",
+      "sbp": 133.0,
+      "dbp": 75.0,
+      "bmi": 24.5,
+      "smoking": "비흡연",
+      "exercise": "없음",
+      "actual_htn": "고혈압 전단계",
+      "predicted_prob": 0.0336,
+      "risk_level": "매우 낮음"
+    },
+    {
+      "age": 50,
+      "sex": "여성",
+      "sbp": 122.0,
+      "dbp": 66.0,
+      "bmi": 27.6,
+      "smoking": "현재흡연",
+      "exercise": "주1~2회",
+      "actual_htn": "고혈압 전단계",
+      "predicted_prob": 0.0221,
+      "risk_level": "매우 낮음"
+    },
+    {
+      "age": 60,
+      "sex": "남성",
+      "sbp": 138.0,
+      "dbp": 73.0,
+      "bmi": 29.1,
+      "smoking": "현재흡연",
+      "exercise": "없음",
+      "actual_htn": "고혈압 전단계",
+      "predicted_prob": 0.0641,
+      "risk_level": "매우 낮음"
+    },
+    {
+      "age": 45,
+      "sex": "여성",
+      "sbp": 134.0,
+      "dbp": 70.0,
+      "bmi": 27.9,
+      "smoking": "비흡연",
+      "exercise": "주1~2회",
+      "actual_htn": "고혈압 전단계",
+      "predicted_prob": 0.018,
+      "risk_level": "매우 낮음"
+    },
+    {
+      "age": 27,
+      "sex": "남성",
+      "sbp": 95.0,
+      "dbp": 50.0,
+      "bmi": 19.7,
+      "smoking": "비흡연",
+      "exercise": "주1~2회",
+      "actual_htn": "정상",
+      "predicted_prob": 0.0011,
+      "risk_level": "매우 낮음"
+    },
+    {
+      "age": 23,
+      "sex": "남성",
+      "sbp": 103.0,
+      "dbp": 56.0,
+      "bmi": 27.7,
+      "smoking": "비흡연",
+      "exercise": "주5회 이상",
+      "actual_htn": "정상",
+      "predicted_prob": 0.0258,
+      "risk_level": "매우 낮음"
+    },
+    {
+      "age": 43,
+      "sex": "남성",
+      "sbp": 99.0,
+      "dbp": 59.0,
+      "bmi": 20.4,
+      "smoking": "현재흡연",
+      "exercise": "주3~4회",
+      "actual_htn": "정상",
+      "predicted_prob": 0.0015,
+      "risk_level": "매우 낮음"
+    },
+    {
+      "age": 47,
+      "sex": "여성",
+      "sbp": 110.0,
+      "dbp": 60.0,
+      "bmi": 24.6,
+      "smoking": "비흡연",
+      "exercise": "주1~2회",
+      "actual_htn": "정상",
+      "predicted_prob": 0.0004,
+      "risk_level": "매우 낮음"
+    },
+    {
+      "age": 68,
+      "sex": "남성",
+      "sbp": 126.0,
+      "dbp": 70.0,
+      "bmi": 27.7,
+      "smoking": "비흡연",
+      "exercise": "주3~4회",
+      "actual_htn": "고혈압 전단계",
+      "predicted_prob": 0.0585,
+      "risk_level": "매우 낮음"
+    },
+    {
+      "age": 43,
+      "sex": "남성",
+      "sbp": 95.0,
+      "dbp": 77.0,
+      "bmi": 22.5,
+      "smoking": "비흡연",
+      "exercise": "주3~4회",
+      "actual_htn": "정상",
+      "predicted_prob": 0.0171,
+      "risk_level": "매우 낮음"
+    }
+  ],
+  "population_stats": {
+    "total_records": 12650,
+    "hypertension_count": 1171,
+    "hypertension_pct": 9.3,
+    "age_stats": {
+      "mean": 52.0,
+      "min": 20,
+      "max": 89
+    },
+    "sbp_stats": {
+      "mean": 117.1,
+      "min": 90,
+      "max": 177,
+      "p25": 106.0,
+      "p50": 117.0,
+      "p75": 128.0
+    },
+    "dbp_stats": {
+      "mean": 69.5,
+      "min": 50,
+      "max": 100
+    },
+    "bmi_stats": {
+      "mean": 24.1,
+      "min": 17.0,
+      "max": 38.1
+    }
+  },
+  "age_htn_stats": [
+    {
+      "age_group": "20대",
+      "total": 842,
+      "htn_count": 2,
+      "htn_pct": 0.2,
+      "avg_sbp_normal": 99.4,
+      "avg_sbp_htn": 115.5
+    },
+    {
+      "age_group": "30대",
+      "total": 1709,
+      "htn_count": 7,
+      "htn_pct": 0.4,
+      "avg_sbp_normal": 104.4,
+      "avg_sbp_htn": 132.6
+    },
+    {
+      "age_group": "40대",
+      "total": 2969,
+      "htn_count": 74,
+      "htn_pct": 2.5,
+      "avg_sbp_normal": 112.4,
+      "avg_sbp_htn": 139.0
+    },
+    {
+      "age_group": "50대",
+      "total": 3274,
+      "htn_count": 202,
+      "htn_pct": 6.2,
+      "avg_sbp_normal": 117.5,
+      "avg_sbp_htn": 142.3
+    },
+    {
+      "age_group": "60대",
+      "total": 2309,
+      "htn_count": 375,
+      "htn_pct": 16.2,
+      "avg_sbp_normal": 121.5,
+      "avg_sbp_htn": 143.7
+    },
+    {
+      "age_group": "70대",
+      "total": 1136,
+      "htn_count": 314,
+      "htn_pct": 27.6,
+      "avg_sbp_normal": 124.4,
+      "avg_sbp_htn": 145.1
+    },
+    {
+      "age_group": "80대이상",
+      "total": 411,
+      "htn_count": 197,
+      "htn_pct": 47.9,
+      "avg_sbp_normal": 127.3,
+      "avg_sbp_htn": 147.6
+    }
+  ],
+  "sex_htn_stats": [
+    {
+      "sex": "남성",
+      "total": 6205,
+      "htn_count": 735,
+      "htn_pct": 11.8
+    },
+    {
+      "sex": "여성",
+      "total": 6445,
+      "htn_count": 436,
+      "htn_pct": 6.8
+    }
+  ],
+  "encoders": {
+    "SEX": {
+      "남성": 0,
+      "여성": 1
+    },
+    "SMOKING": {
+      "과거흡연": 0,
+      "비흡연": 1,
+      "현재흡연": 2
+    },
+    "DRINKING": {
+      "비음주": 0,
+      "월1~4회": 1,
+      "주1~2회": 2,
+      "주3회 이상": 3
+    },
+    "EXERCISE": {
+      "없음": 0,
+      "주1~2회": 1,
+      "주3~4회": 2,
+      "주5회 이상": 3
+    },
+    "STRESS_LEVEL": {
+      "낮음": 0,
+      "높음": 1,
+      "보통": 2
+    },
+    "SUBJECTIVE_HEALTH": {
+      "나쁨": 0,
+      "보통": 1,
+      "좋음": 2
+    },
+    "MENOPAUSE": {
+      "NO": 0,
+      "YES": 1,
+      "해당없음": 2
+    }
+  }
+}
